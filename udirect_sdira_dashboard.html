@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>uDirect IRA — SDIRA Competitive Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0a0b0f;
+  --surface: #13151c;
+  --surface2: #1a1d28;
+  --surface3: #21253a;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #f0f0f5;
+  --muted: #8a8fa8;
+  --dim: #4a4f68;
+  --accent: #4f8ef7;
+  --accent2: #7c5cfc;
+  --green: #2dd4a0;
+  --red: #f05252;
+  --amber: #f59e0b;
+  --pink: #e879a0;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --radius: 10px;
+  --radius-lg: 16px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ─── NOISE OVERLAY ─── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: 0.4;
+}
+
+.app { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 24px 60px; }
+
+/* ─── HEADER ─── */
+header {
+  padding: 36px 0 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;
+  flex-wrap: wrap;
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.logo-mark {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 800; font-size: 16px; color: #fff;
+  flex-shrink: 0;
+}
+.header-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--text); }
+.header-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.header-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.badge {
+  font-family: var(--font-mono); font-size: 11px; padding: 4px 10px;
+  border-radius: 6px; border: 1px solid var(--border2);
+  color: var(--muted); background: var(--surface);
+}
+.badge-warn { border-color: rgba(240,82,82,0.4); color: var(--red); background: rgba(240,82,82,0.08); }
+.badge-ok { border-color: rgba(45,212,160,0.4); color: var(--green); background: rgba(45,212,160,0.08); }
+.badge-info { border-color: rgba(79,142,247,0.4); color: var(--accent); background: rgba(79,142,247,0.08); }
+.updated { font-size: 11px; color: var(--dim); font-family: var(--font-mono); }
+
+/* ─── METRIC CARDS ─── */
+.metrics-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 28px; }
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.metric-card:hover { border-color: var(--border2); }
+.metric-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--accent-line, var(--accent));
+  border-radius: 2px 2px 0 0;
+}
+.m-label { font-size: 11px; color: var(--muted); font-family: var(--font-mono); letter-spacing: 0.04em; margin-bottom: 10px; text-transform: uppercase; }
+.m-val { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
+.m-delta { font-size: 12px; margin-top: 6px; }
+.up { color: var(--green); }
+.down { color: var(--red); }
+.neutral { color: var(--muted); }
+
+/* ─── GRID LAYOUTS ─── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-3-2 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; margin-bottom: 16px; }
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border2); }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.card-title { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--text); }
+.card-action { font-size: 11px; color: var(--muted); font-family: var(--font-mono); cursor: pointer; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); background: transparent; }
+.card-action:hover { border-color: var(--border2); color: var(--text); }
+
+/* ─── SECTION LABELS ─── */
+.section-label {
+  font-family: var(--font-mono); font-size: 10px; color: var(--dim);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 12px; margin-top: 28px;
+}
+
+/* ─── COMPETITORS TABLE ─── */
+.comp-table { width: 100%; border-collapse: collapse; }
+.comp-table th {
+  font-size: 10px; color: var(--dim); font-family: var(--font-mono);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 0 10px 10px 0; text-align: left; font-weight: 400;
+  border-bottom: 1px solid var(--border);
+}
+.comp-table td { padding: 12px 10px 12px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.comp-table tr:last-child td { border-bottom: none; }
+.comp-table tr.highlight td { background: rgba(79,142,247,0.04); }
+.comp-name { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--text); }
+.comp-url { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+.da-bar-bg { width: 80px; height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; display: inline-block; }
+.da-bar-fill { height: 100%; border-radius: 2px; }
+.pill { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-family: var(--font-mono); display: inline-block; }
+.pill-up { background: rgba(45,212,160,0.12); color: var(--green); border: 1px solid rgba(45,212,160,0.2); }
+.pill-down { background: rgba(240,82,82,0.12); color: var(--red); border: 1px solid rgba(240,82,82,0.2); }
+.pill-flat { background: rgba(138,143,168,0.12); color: var(--muted); border: 1px solid var(--border); }
+
+/* ─── AI VISIBILITY BARS ─── */
+.ai-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.ai-row:last-child { border-bottom: none; }
+.ai-name { font-size: 12px; color: var(--text); min-width: 110px; font-family: var(--font-display); font-weight: 500; }
+.ai-bar-bg { flex: 1; height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.ai-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+.ai-score { font-family: var(--font-mono); font-size: 12px; color: var(--muted); min-width: 32px; text-align: right; }
+
+/* ─── KEYWORD TABLE ─── */
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab { font-size: 11px; padding: 5px 14px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--font-mono); transition: all 0.15s; }
+.tab.active { background: rgba(79,142,247,0.12); border-color: rgba(79,142,247,0.4); color: var(--accent); }
+.tab:hover:not(.active) { border-color: var(--border2); color: var(--text); }
+.kw-table { width: 100%; border-collapse: collapse; }
+.kw-table th { font-size: 10px; color: var(--dim); font-family: var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 400; padding: 0 8px 10px 0; text-align: left; border-bottom: 1px solid var(--border); }
+.kw-table td { padding: 9px 8px 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+.kw-table tr:last-child td { border-bottom: none; }
+.kw-keyword { font-family: var(--font-display); font-size: 12px; font-weight: 500; color: var(--text); }
+.kw-vol { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.kw-pos { font-family: var(--font-mono); font-size: 11px; }
+.diff-bar-bg { width: 60px; height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.diff-bar-fill { height: 100%; border-radius: 2px; }
+
+/* ─── TOPIC TAGS ─── */
+.topic-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+.topic-tag {
+  font-size: 12px; padding: 6px 12px; border-radius: 20px;
+  border: 1px solid var(--border); color: var(--muted);
+  cursor: pointer; transition: all 0.2s; font-family: var(--font-body);
+}
+.topic-tag:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.08); }
+.topic-tag.hot { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: var(--amber); }
+.topic-tag.own { background: rgba(45,212,160,0.1); border-color: rgba(45,212,160,0.3); color: var(--green); }
+.topic-legend { display: flex; gap: 16px; margin-top: 16px; font-size: 11px; color: var(--dim); font-family: var(--font-mono); }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+/* ─── MARKET SEGMENTS ─── */
+.seg-row { margin-bottom: 14px; }
+.seg-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+.seg-name { color: var(--text); font-family: var(--font-display); font-weight: 500; }
+.seg-leader { color: var(--dim); font-family: var(--font-mono); font-size: 10px; }
+.seg-bar-bg { height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.seg-bar-fill { height: 100%; border-radius: 3px; transition: width 1.2s ease; }
+
+/* ─── OPPORTUNITIES ─── */
+.opp-list { display: flex; flex-direction: column; gap: 0; }
+.opp-item {
+  display: flex; gap: 14px; padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+.opp-item:last-child { border-bottom: none; }
+.opp-num {
+  font-family: var(--font-mono); font-size: 11px; color: var(--dim);
+  min-width: 24px; padding-top: 2px;
+}
+.opp-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.opp-body { flex: 1; }
+.opp-title { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.opp-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.opp-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.opp-tag { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono); }
+.tag-high { background: rgba(240,82,82,0.12); color: var(--red); border: 1px solid rgba(240,82,82,0.2); }
+.tag-med { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+.tag-easy { background: rgba(45,212,160,0.12); color: var(--green); border: 1px solid rgba(45,212,160,0.2); }
+.tag-neutral { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+/* ─── CHART CONTAINERS ─── */
+.chart-wrap { position: relative; width: 100%; height: 220px; }
+
+/* ─── FOOTER ─── */
+footer {
+  margin-top: 48px; padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px;
+}
+.footer-brand { font-family: var(--font-display); font-size: 13px; color: var(--dim); }
+.footer-note { font-size: 11px; color: var(--dim); font-family: var(--font-mono); }
+
+@media (max-width: 800px) {
+  .metrics-row { grid-template-columns: repeat(2, 1fr); }
+  .grid-2, .grid-3-2, .grid-3 { grid-template-columns: 1fr; }
+}
+@media (max-width: 500px) {
+  .metrics-row { grid-template-columns: 1fr 1fr; }
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.5s ease both; }
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.1s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.2s; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="fade-up">
+    <div class="header-left">
+      <div class="logo-mark">uD</div>
+      <div>
+        <div class="header-title">SDIRA Competitive Intelligence</div>
+        <div class="header-sub">uDirect IRA Services &mdash; udirectira.com</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="badge badge-warn">AI Visibility: Low &mdash; 28%</span>
+      <span class="badge badge-info">DA 41 &mdash; Gap: 27pts</span>
+      <span class="badge badge-ok">Traffic ↑ 12% YoY</span>
+      <span class="updated">Updated: Jul 2025</span>
+    </div>
+  </header>
+
+  <!-- METRIC CARDS -->
+  <div class="metrics-row">
+    <div class="metric-card fade-up delay-1" style="--accent-line: var(--accent);">
+      <div class="m-label">Domain Authority</div>
+      <div class="m-val">41</div>
+      <div class="m-delta down">↓ 27pts below Equity Trust</div>
+    </div>
+    <div class="metric-card fade-up delay-2" style="--accent-line: var(--green);">
+      <div class="m-label">Monthly Organic Traffic</div>
+      <div class="m-val">18.4K</div>
+      <div class="m-delta up">↑ 12% year over year</div>
+    </div>
+    <div class="metric-card fade-up delay-3" style="--accent-line: var(--amber);">
+      <div class="m-label">Ranking Keywords</div>
+      <div class="m-val">2,310</div>
+      <div class="m-delta up">↑ 340 new in last 90 days</div>
+    </div>
+    <div class="metric-card fade-up delay-4" style="--accent-line: var(--pink);">
+      <div class="m-label">AI Citation Score</div>
+      <div class="m-val">28%</div>
+      <div class="m-delta down">↓ vs 82% market leader</div>
+    </div>
+  </div>
+
+  <!-- ROW: GROWTH CHART + AI VISIBILITY -->
+  <div class="section-label">Growth trend &amp; AI visibility</div>
+  <div class="grid-3-2">
+    <div class="card fade-up">
+      <div class="card-header">
+        <span class="card-title">Organic traffic growth — uDirect vs. top competitor</span>
+      </div>
+      <div class="chart-wrap"><canvas id="growthChart"></canvas></div>
+      <div style="display:flex; gap:20px; margin-top:14px; font-size:11px; font-family:var(--font-mono); color:var(--muted);">
+        <span><span style="display:inline-block;width:20px;height:2px;background:var(--accent);vertical-align:middle;margin-right:6px;border-radius:1px;"></span>uDirect IRA</span>
+        <span><span style="display:inline-block;width:20px;height:2px;background:var(--red);vertical-align:middle;margin-right:6px;border-radius:1px;border-style:dashed;"></span>Equity Trust (scaled)</span>
+      </div>
+    </div>
+    <div class="card fade-up">
+      <div class="card-header">
+        <span class="card-title">AI search citation score</span>
+      </div>
+      <div id="aiList"></div>
+    </div>
+  </div>
+
+  <!-- ROW: COMPETITORS + MARKET SEGMENTS -->
+  <div class="section-label">Competitor landscape &amp; market presence</div>
+  <div class="grid-3-2">
+    <div class="card fade-up">
+      <div class="card-header">
+        <span class="card-title">SDIRA competitor overview</span>
+      </div>
+      <table class="comp-table" id="compTable"></table>
+    </div>
+    <div class="card fade-up">
+      <div class="card-header">
+        <span class="card-title">Market share by segment</span>
+      </div>
+      <div id="marketSegs"></div>
+    </div>
+  </div>
+
+  <!-- KEYWORD INTELLIGENCE -->
+  <div class="section-label">Keyword intelligence</div>
+  <div class="card fade-up" style="margin-bottom:16px;">
+    <div class="card-header">
+      <span class="card-title">Organic, paid &amp; competitor gap keywords</span>
+    </div>
+    <div class="tabs" id="kwTabs">
+      <button class="tab active" onclick="switchTab('organic',this)">Top organic</button>
+      <button class="tab" onclick="switchTab('paid',this)">Paid opportunities</button>
+      <button class="tab" onclick="switchTab('gap',this)">Competitor gaps</button>
+      <button class="tab" onclick="switchTab('ai',this)">AI-cited queries</button>
+    </div>
+    <div id="kwContent"></div>
+  </div>
+
+  <!-- TOPICS + OPPORTUNITIES -->
+  <div class="section-label">Topic authority &amp; strategic opportunities</div>
+  <div class="grid-2">
+    <div class="card fade-up">
+      <div class="card-header">
+        <span class="card-title">Topic clusters driving SDIRA traffic</span>
+      </div>
+      <div class="topic-cloud" id="topicCloud"></div>
+      <div class="topic-legend">
+        <span><span class="legend-dot" style="background:var(--amber);"></span>Trending</span>
+        <span><span class="legend-dot" style="background:var(--green);"></span>uDirect owns</span>
+        <span><span class="legend-dot" style="background:var(--dim);"></span>Open opportunity</span>
+      </div>
+    </div>
+    <div class="card fade-up">
+      <div class="card-header">
+        <span class="card-title">Domain authority comparison</span>
+      </div>
+      <div class="chart-wrap" style="height:200px;"><canvas id="daChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- AI OPPORTUNITIES -->
+  <div class="section-label">AI foodchain — actions to move up</div>
+  <div class="card fade-up">
+    <div class="card-header">
+      <span class="card-title">Priority plays to dominate SDIRA AI search results</span>
+    </div>
+    <div class="opp-list" id="oppList"></div>
+  </div>
+
+  <footer>
+    <div class="footer-brand">uDirect IRA &mdash; SDIRA Competitive Intelligence</div>
+    <div class="footer-note">Data modeled on SDIRA industry benchmarks &middot; LeadGrow &middot; 2025</div>
+  </footer>
+
+</div>
+
+<script>
+const competitors = [
+  { name: "Equity Trust", url: "trustetc.com", da: 68, traffic: "210K", trend: "up", color: "#f05252", ai: "strong", aiScore: 82 },
+  { name: "IRA Financial", url: "irafinancial.com", da: 61, traffic: "130K", trend: "up", color: "#e879a0", ai: "strong", aiScore: 76 },
+  { name: "Midland IRA", url: "midlandira.com", da: 58, traffic: "95K", trend: "up", color: "#f59e0b", ai: "strong", aiScore: 71 },
+  { name: "Alto IRA", url: "altoira.com", da: 55, traffic: "72K", trend: "up", color: "#7c5cfc", ai: "strong", aiScore: 68 },
+  { name: "Rocket Dollar", url: "rocketdollar.com", da: 52, traffic: "48K", trend: "flat", color: "#2dd4a0", ai: "weak", aiScore: 44 },
+  { name: "uDirect IRA", url: "udirectira.com", da: 41, traffic: "18.4K", trend: "up", color: "#4f8ef7", ai: "weak", aiScore: 28, self: true },
+];
+
+const kwData = {
+  organic: [
+    { kw: "self directed ira", vol: "22,000", pos: 14, diff: 72 },
+    { kw: "sdira custodian", vol: "5,400", pos: 8, diff: 58 },
+    { kw: "self directed roth ira real estate", vol: "4,800", pos: 11, diff: 64 },
+    { kw: "sdira real estate investing", vol: "3,200", pos: 6, diff: 55 },
+    { kw: "self directed ira fees", vol: "2,900", pos: 4, diff: 47 },
+    { kw: "checkbook ira llc", vol: "2,100", pos: 9, diff: 61 },
+    { kw: "udirect ira review", vol: "1,800", pos: 1, diff: 22 },
+    { kw: "self directed ira gold", vol: "8,100", pos: 22, diff: 78 },
+  ],
+  paid: [
+    { kw: "best self directed ira", vol: "12,000", pos: "—", diff: 85 },
+    { kw: "self directed ira companies", vol: "9,500", pos: "—", diff: 80 },
+    { kw: "open self directed ira", vol: "4,200", pos: "—", diff: 66 },
+    { kw: "invest ira in real estate", vol: "6,100", pos: "—", diff: 71 },
+    { kw: "sdira bitcoin", vol: "3,900", pos: "—", diff: 60 },
+    { kw: "self directed ira custodian fees", vol: "2,800", pos: "—", diff: 52 },
+  ],
+  gap: [
+    { kw: "self directed ira vs solo 401k", vol: "5,600", pos: "Not ranking", diff: 58 },
+    { kw: "sdira prohibited transactions", vol: "4,100", pos: "Not ranking", diff: 51 },
+    { kw: "can i invest ira in private equity", vol: "3,800", pos: "Not ranking", diff: 62 },
+    { kw: "self directed ira rules irs", vol: "7,200", pos: "Not ranking", diff: 68 },
+    { kw: "best sdira for real estate 2025", vol: "2,400", pos: "Not ranking", diff: 55 },
+    { kw: "self directed ira custodian comparison", vol: "3,100", pos: "Not ranking", diff: 63 },
+    { kw: "udirect vs equity trust", vol: "890", pos: "Not ranking", diff: 31 },
+  ],
+  ai: [
+    { kw: "what is the best self directed ira company", vol: "High AI intent", pos: "Not cited", diff: 90 },
+    { kw: "self directed ira for real estate investing", vol: "High AI intent", pos: "Cited: competitors", diff: 85 },
+    { kw: "how does an sdira work", vol: "Very high AI intent", pos: "Not cited", diff: 70 },
+    { kw: "sdira fees comparison 2025", vol: "High AI intent", pos: "Not cited", diff: 75 },
+    { kw: "best custodian for real estate ira", vol: "High AI intent", pos: "Cited: competitors", diff: 88 },
+    { kw: "self directed ira vs traditional ira", vol: "Very high AI intent", pos: "Not cited", diff: 65 },
+  ]
+};
+
+const topics = [
+  { label: "Real estate IRA", hot: true },
+  { label: "Custodian fees", own: true },
+  { label: "Checkbook IRA", own: true },
+  { label: "Prohibited transactions", hot: true },
+  { label: "Solo 401k", hot: true },
+  { label: "Gold & precious metals" },
+  { label: "Crypto SDIRA", hot: true },
+  { label: "Private equity" },
+  { label: "Tax advantages", own: true },
+  { label: "IRS rules" },
+  { label: "IRA rollovers", own: true },
+  { label: "Alternative assets", hot: true },
+  { label: "UBIT" },
+  { label: "LLC structure", own: true },
+];
+
+const markets = [
+  { seg: "DIY self-directed investors", score: 71, leader: "uDirect IRA", self: true },
+  { seg: "Real estate investors", score: 62, leader: "Equity Trust" },
+  { seg: "Small business owners", score: 55, leader: "IRA Financial" },
+  { seg: "Private lending / notes", score: 44, leader: "Midland IRA" },
+  { seg: "Crypto & alt assets", score: 28, leader: "Alto IRA" },
+  { seg: "Gold / precious metals", score: 18, leader: "Equity Trust" },
+];
+
+const opps = [
+  { icon: "🤖", title: "Create AI-answer content for top SDIRA queries", desc: "Publish comprehensive FAQ pages targeting 'what is the best SDIRA company' and 'how does an SDIRA work' — structured for AI citation with clear H2s, concise sub-100-word answers, and authoritative sources.", tags: [{ label: "High impact", cls: "tag-high" }, { label: "Content", cls: "tag-neutral" }, { label: "Quick win", cls: "tag-easy" }] },
+  { icon: "📊", title: "Publish a 2025 SDIRA fee comparison guide", desc: "No competitor owns this. A transparent breakdown of custodian fees (setup, annual, transaction) positions uDirect as the trusted authority, wins featured snippets, and earns inbound links.", tags: [{ label: "High impact", cls: "tag-high" }, { label: "SEO + AI", cls: "tag-neutral" }, { label: "Linkable asset", cls: "tag-easy" }] },
+  { icon: "🔗", title: "Build topical authority around prohibited transactions", desc: "4,100+ monthly searches and competitors are weak here. A deep content cluster — IRS rules, case studies, checklists — captures mid-funnel researchers and earns backlinks.", tags: [{ label: "Medium impact", cls: "tag-med" }, { label: "Authority building", cls: "tag-neutral" }] },
+  { icon: "⚔️", title: "Own the comparison queries", desc: "'uDirect vs Equity Trust' and 'uDirect vs Midland IRA' are low-competition, high-intent. Control your narrative before competitors write it for you.", tags: [{ label: "High impact", cls: "tag-high" }, { label: "Conversion", cls: "tag-neutral" }, { label: "Low difficulty", cls: "tag-easy" }] },
+  { icon: "₿", title: "Enter the crypto SDIRA conversation", desc: "Alto IRA dominates this segment. Create beginner-to-advanced content on Bitcoin IRAs, private equity, and alternative assets to compete in the fastest-growing SDIRA category.", tags: [{ label: "Medium impact", cls: "tag-med" }, { label: "Crypto", cls: "tag-neutral" }, { label: "Growing segment", cls: "tag-easy" }] },
+];
+
+// ─── RENDER FUNCTIONS ───
+
+function renderCompTable() {
+  const el = document.getElementById('compTable');
+  el.innerHTML = `<thead><tr>
+    <th>Competitor</th><th>DA</th><th>Traffic/mo</th><th>Trend</th><th>AI</th>
+  </tr></thead><tbody>` + competitors.map(c => `
+    <tr class="${c.self ? 'highlight' : ''}">
+      <td>
+        <span class="dot" style="background:${c.color};"></span>
+        <span class="comp-name">${c.name}</span><br>
+        <span class="comp-url" style="margin-left:16px;">${c.url}</span>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="da-bar-bg"><div class="da-bar-fill" style="width:${(c.da/70*100).toFixed(0)}%;background:${c.color};"></div></div>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">${c.da}</span>
+        </div>
+      </td>
+      <td style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">${c.traffic}</td>
+      <td><span class="pill ${c.trend==='up'?'pill-up':'pill-flat'}">${c.trend==='up'?'↑ growing':'→ stable'}</span></td>
+      <td><span class="pill ${c.ai==='strong'?'pill-up':'pill-flat'}">${c.ai==='strong'?'Cited':'Weak'}</span></td>
+    </tr>
+  `).join('') + '</tbody>';
+}
+
+function renderAIList() {
+  const el = document.getElementById('aiList');
+  el.innerHTML = competitors.map(c => `
+    <div class="ai-row">
+      <div class="ai-name">${c.name}</div>
+      <div class="ai-bar-bg"><div class="ai-bar-fill" style="width:${c.aiScore}%;background:${c.color};"></div></div>
+      <div class="ai-score">${c.aiScore}%</div>
+    </div>
+  `).join('');
+}
+
+function renderKW(tab) {
+  const rows = kwData[tab];
+  const colHeader = tab === 'organic' ? 'Position' : 'Status';
+  document.getElementById('kwContent').innerHTML = `
+    <table class="kw-table">
+      <thead><tr>
+        <th>Keyword</th><th>Search vol.</th><th>${colHeader}</th><th>Difficulty</th>
+      </tr></thead>
+      <tbody>${rows.map(r => {
+        const diffColor = r.diff > 70 ? '#f05252' : r.diff > 50 ? '#f59e0b' : '#2dd4a0';
+        return `<tr>
+          <td class="kw-keyword">${r.kw}</td>
+          <td class="kw-vol">${r.vol}</td>
+          <td><span class="kw-pos" style="font-family:var(--font-mono);font-size:11px;color:${typeof r.pos === 'number' && r.pos <= 5 ? 'var(--green)' : 'var(--muted)'};">${r.pos}</span></td>
+          <td>
+            <div class="diff-bar-bg"><div class="diff-bar-fill" style="width:${r.diff}%;background:${diffColor};"></div></div>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">${r.diff}</span>
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderKW(tab);
+}
+
+function renderTopics() {
+  document.getElementById('topicCloud').innerHTML = topics.map(t =>
+    `<span class="topic-tag ${t.hot ? 'hot' : t.own ? 'own' : ''}">${t.label}</span>`
+  ).join('');
+}
+
+function renderMarkets() {
+  document.getElementById('marketSegs').innerHTML = markets.map(m => `
+    <div class="seg-row">
+      <div class="seg-header">
+        <span class="seg-name">${m.seg}</span>
+        <span class="seg-leader">Leader: ${m.leader}</span>
+      </div>
+      <div class="seg-bar-bg">
+        <div class="seg-bar-fill" style="width:${m.score}%;background:${m.self ? '#4f8ef7' : 'rgba(255,255,255,0.15)'};"></div>
+      </div>
+      <div style="font-size:10px;color:var(--dim);margin-top:3px;font-family:var(--font-mono);">uDirect share: ${m.score}%</div>
+    </div>
+  `).join('');
+}
+
+function renderOpps() {
+  document.getElementById('oppList').innerHTML = opps.map((o, i) => `
+    <div class="opp-item">
+      <div class="opp-num">0${i+1}</div>
+      <div class="opp-icon">${o.icon}</div>
+      <div class="opp-body">
+        <div class="opp-title">${o.title}</div>
+        <div class="opp-desc">${o.desc}</div>
+        <div class="opp-tags">${o.tags.map(t => `<span class="opp-tag ${t.cls}">${t.label}</span>`).join('')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderGrowthChart() {
+  const labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const udirect = [14200,14800,15100,15600,16200,16500,17100,17400,17900,18100,18200,18400];
+  const equity = [178000,181000,185000,188000,192000,196000,198000,202000,205000,207000,209000,210000].map(v => Math.round(v/11.4));
+  new Chart(document.getElementById('growthChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'uDirect IRA', data: udirect, borderColor: '#4f8ef7', backgroundColor: 'rgba(79,142,247,0.06)', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.4 },
+        { label: 'Equity Trust', data: equity, borderColor: '#f05252', backgroundColor: 'transparent', borderWidth: 1.5, borderDash: [4,3], pointRadius: 0, tension: 0.4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw.toLocaleString()}` } } },
+      scales: {
+        x: { ticks: { font: { size: 11 }, color: '#4a4f68' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { font: { size: 11 }, color: '#4a4f68', callback: v => (v/1000).toFixed(0)+'K' }, grid: { color: 'rgba(255,255,255,0.04)' } }
+      }
+    }
+  });
+}
+
+function renderDAChart() {
+  const sorted = [...competitors].sort((a,b) => a.da - b.da);
+  new Chart(document.getElementById('daChart'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(c => c.name),
+      datasets: [{
+        data: sorted.map(c => c.da),
+        backgroundColor: sorted.map(c => c.color + '99'),
+        borderColor: sorted.map(c => c.color),
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { size: 11 }, color: '#4a4f68' }, grid: { color: 'rgba(255,255,255,0.04)' }, max: 80 },
+        y: { ticks: { font: { size: 11 }, color: '#8a8fa8' }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// Init
+renderCompTable();
+renderAIList();
+renderKW('organic');
+renderTopics();
+renderMarkets();
+renderOpps();
+renderGrowthChart();
+renderDAChart();
+</script>
+</body>
+</html>
