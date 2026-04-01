@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>uDirect IRA — SDIRA Competitive Intelligence</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root {
@@ -14,18 +14,18 @@
   --surface3: #21253a;
   --border: rgba(255,255,255,0.07);
   --border2: rgba(255,255,255,0.13);
-  --text: #f0f0f5;
-  --muted: #8a8fa8;
-  --dim: #4a4f68;
+  --text: #ffffff;
+  --muted: #a0a5bf;
+  --dim: #5a5f7a;
   --accent: #4f8ef7;
   --accent2: #7c5cfc;
   --green: #2dd4a0;
   --red: #f05252;
   --amber: #f59e0b;
   --pink: #e879a0;
-  --font-display: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-  --font-mono: 'DM Mono', monospace;
+  --font-display: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
   --radius: 10px;
   --radius-lg: 16px;
 }
@@ -67,7 +67,7 @@ header {
   font-family: var(--font-display); font-weight: 800; font-size: 16px; color: #fff;
   flex-shrink: 0;
 }
-.header-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--text); }
+.header-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: #ffffff; }
 .header-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
 .header-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .badge {
@@ -97,7 +97,7 @@ header {
   border-radius: 2px 2px 0 0;
 }
 .m-label { font-size: 11px; color: var(--muted); font-family: var(--font-mono); letter-spacing: 0.04em; margin-bottom: 10px; text-transform: uppercase; }
-.m-val { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
+.m-val { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1; }
 .m-delta { font-size: 12px; margin-top: 6px; }
 .up { color: var(--green); }
 .down { color: var(--red); }
@@ -118,7 +118,7 @@ header {
 }
 .card:hover { border-color: var(--border2); }
 .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-.card-title { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--text); }
+.card-title { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: #ffffff; }
 .card-action { font-size: 11px; color: var(--muted); font-family: var(--font-mono); cursor: pointer; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); background: transparent; }
 .card-action:hover { border-color: var(--border2); color: var(--text); }
 
@@ -466,7 +466,7 @@ const markets = [
 
 const opps = [
   { icon: "🤖", title: "Create AI-answer content for top SDIRA queries", desc: "Publish comprehensive FAQ pages targeting 'what is the best SDIRA company' and 'how does an SDIRA work' — structured for AI citation with clear H2s, concise sub-100-word answers, and authoritative sources.", tags: [{ label: "High impact", cls: "tag-high" }, { label: "Content", cls: "tag-neutral" }, { label: "Quick win", cls: "tag-easy" }] },
-  { icon: "📊", title: "Publish a 2025 SDIRA fee comparison guide", desc: "No competitor owns this. A transparent breakdown of custodian fees (setup, annual, transaction) positions uDirect as the trusted authority, wins featured snippets, and earns inbound links.", tags: [{ label: "High impact", cls: "tag-high" }, { label: "SEO + AI", cls: "tag-neutral" }, { label: "Linkable asset", cls: "tag-easy" }] },
+  { icon: "📊", title: "Publish a 2026 SDIRA fee comparison guide", desc: "No competitor owns this. A transparent breakdown of custodian fees (setup, annual, transaction) positions uDirect as the trusted authority, wins featured snippets, and earns inbound links.", tags: [{ label: "High impact", cls: "tag-high" }, { label: "SEO + AI", cls: "tag-neutral" }, { label: "Linkable asset", cls: "tag-easy" }] },
   { icon: "🔗", title: "Build topical authority around prohibited transactions", desc: "4,100+ monthly searches and competitors are weak here. A deep content cluster — IRS rules, case studies, checklists — captures mid-funnel researchers and earns backlinks.", tags: [{ label: "Medium impact", cls: "tag-med" }, { label: "Authority building", cls: "tag-neutral" }] },
   { icon: "⚔️", title: "Own the comparison queries", desc: "'uDirect vs Equity Trust' and 'uDirect vs Midland IRA' are low-competition, high-intent. Control your narrative before competitors write it for you.", tags: [{ label: "High impact", cls: "tag-high" }, { label: "Conversion", cls: "tag-neutral" }, { label: "Low difficulty", cls: "tag-easy" }] },
   { icon: "₿", title: "Enter the crypto SDIRA conversation", desc: "Alto IRA dominates this segment. Create beginner-to-advanced content on Bitcoin IRAs, private equity, and alternative assets to compete in the fastest-growing SDIRA category.", tags: [{ label: "Medium impact", cls: "tag-med" }, { label: "Crypto", cls: "tag-neutral" }, { label: "Growing segment", cls: "tag-easy" }] },
